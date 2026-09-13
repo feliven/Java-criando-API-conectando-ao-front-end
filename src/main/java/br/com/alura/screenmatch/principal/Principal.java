@@ -1,0 +1,392 @@
+package br.com.alura.screenmatch.principal;
+
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+
+import org.springframework.dao.DataIntegrityViolationException;
+
+import br.com.alura.screenmatch.model.DadosSerie;
+import br.com.alura.screenmatch.model.DadosTemporada;
+import br.com.alura.screenmatch.model.Episodio;
+import br.com.alura.screenmatch.model.Ator;
+import br.com.alura.screenmatch.model.Categoria;
+import br.com.alura.screenmatch.model.Serie;
+import br.com.alura.screenmatch.repository.AtorRepository;
+import br.com.alura.screenmatch.repository.SerieRepository;
+import br.com.alura.screenmatch.service.ConsumoApi;
+import br.com.alura.screenmatch.service.ConverteDados;
+
+public class Principal {
+
+    private Scanner scanner = new Scanner(System.in);
+    private ConsumoApi consumo = new ConsumoApi();
+    private ConverteDados conversor = new ConverteDados();
+    private final String ENDERECO = "https://www.omdbapi.com/?t=";
+    private final String API_KEY = "&apikey=4b35c2a4";
+
+    private SerieRepository serieRepository;
+    private AtorRepository atorRepository;
+    private List<Serie> series;
+
+    public Principal(SerieRepository repository, AtorRepository atorRepository) {
+        this.serieRepository = repository;
+        this.atorRepository = atorRepository;
+    }
+
+    public void exibeMenu() {
+        var opcao = -1;
+
+        while (opcao != 0) {
+
+            var menu = """
+
+                    1 - Série - baixar dados da API
+                    2 - Episódios - baixar dados da API
+                    3 - Listar séries salvas
+                    4 - Buscar série por título
+                    5 - Buscar série por ator
+                    6 - Buscar série por ator e avaliação
+                    7 - Buscar top 5 séries salvas
+                    8 - Buscar série por gênero / categoria
+                    9 - Buscar séries curtas e boas
+                    11 - buscarEpisodiosPorTrechoTitulo
+                    22 - buscarTop5EpisodiosSerie
+                    33 - buscarEpisodiosAPartirDeData
+
+                    0 - Sair""";
+
+            System.out.println(menu);
+            opcao = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (opcao) {
+                case 1:
+                    buscarSerieWeb();
+                    break;
+                case 2:
+                    buscarEpisodioPorSerie();
+                    break;
+                case 3:
+                    listarSeriesBuscadas();
+                    break;
+                case 4:
+                    buscarSeriePorTitulo();
+                    break;
+                case 5:
+                    buscarSeriePorAtor();
+                    break;
+                case 6:
+                    buscarSeriePorAtorEAvaliacao();
+                    break;
+                case 7:
+                    buscarTop5Series();
+                    break;
+                case 8:
+                    buscarSeriePorGenero();
+                    break;
+                case 9:
+                    buscarSeriesCurtasEBoas();
+                    break;
+                case 11:
+                    buscarEpisodiosPorTrechoTitulo();
+                    break;
+                case 22:
+                    buscarTop5EpisodiosSerie();
+                    break;
+                case 33:
+                    buscarEpisodiosAPartirDeData();
+                    break;
+                case 0:
+                    System.out.println("Saindo...");
+                    break;
+                default:
+                    System.out.println("Opção inválida");
+            }
+        }
+    }
+
+    private void listarSeriesBuscadas() {
+
+        // List<Serie> series = new ArrayList<>();
+        // series = dadosSeries.stream().map(d -> new
+        // Serie(d)).collect(Collectors.toList());
+
+        series = serieRepository.findAll();
+
+        series.forEach(s -> System.out.println(s.getTitulo()));
+    }
+
+    private void buscarSerieWeb() {
+        DadosSerie dadosSerie = getDadosSerie();
+
+        List<Ator> atores = List.of(dadosSerie.atores().split(", "))
+                .stream()
+                .map(nome -> atorRepository.findByNomeIgnoreCase(nome)
+                        .orElseGet(() -> atorRepository.save(new Ator(nome))))
+                .toList();
+
+        Serie serie = new Serie(dadosSerie, atores);
+
+        // dadosSeries.add(dadosSerie);
+
+        try {
+            serieRepository.save(serie);
+            System.out.println(dadosSerie);
+        } catch (DataIntegrityViolationException e) {
+            System.out.println("Já existe uma série com esse nome.");
+            return;
+        }
+    }
+
+    private DadosSerie getDadosSerie() {
+        System.out.println("Digite o nome da série para busca");
+        var nomeSerie = scanner.nextLine();
+        var json = consumo.obterDados(ENDERECO + nomeSerie.replace(" ", "+") + API_KEY);
+        DadosSerie dados = conversor.obterDados(json, DadosSerie.class);
+        return dados;
+    }
+
+    private void buscarEpisodioPorSerie() {
+        listarSeriesBuscadas();
+
+        System.out.println("Escolha a série pelo nome:");
+        var nomeSerie = scanner.nextLine();
+        var series = serieRepository.findByTituloContainingIgnoreCase(nomeSerie);
+
+        if (series.size() == 0) {
+            System.out.println("Série não foi encontrada");
+        }
+
+        for (int i = 0; i < series.size(); i++) {
+            var serieEncontrada = series.get(i);
+
+            List<DadosTemporada> temporadas = new ArrayList<>();
+
+            for (int j = 1; j <= serieEncontrada.getTotalTemporadas(); j++) {
+                var json = consumo
+                        .obterDados(
+                                ENDERECO + serieEncontrada.getTitulo().replace(" ", "+") + "&season=" + j + API_KEY);
+                DadosTemporada dadosTemporada = conversor.obterDados(json, DadosTemporada.class);
+                temporadas.add(dadosTemporada);
+            }
+            temporadas.forEach(System.out::println);
+
+            List<Episodio> episodios = temporadas.stream()
+                    .flatMap(t -> t.episodios().stream()
+                            .map(e -> new Episodio(t.numero(), e)))
+                    .collect(Collectors.toList());
+
+            serieEncontrada.setEpisodios(episodios);
+
+            try {
+                serieRepository.save(serieEncontrada);
+            } catch (DataIntegrityViolationException e) {
+                System.out.println("Já existe um episódio com esse título.");
+            }
+        }
+
+    }
+
+    private void buscarSeriePorTitulo() {
+
+        System.out.println("Escolha a série pelo nome:");
+        var nomeSerie = scanner.nextLine();
+
+        var seriesBuscadas = serieRepository.findByTituloContainingIgnoreCase(nomeSerie);
+
+        if (seriesBuscadas.size() > 0) {
+            System.out.println("Dados da(s) série(s): " + System.lineSeparator());
+            seriesBuscadas.forEach(s -> System.out
+                    .println(s.getTitulo() + ", avaliação=" + s.getAvaliacao() + ", sinopse=" + s.getSinopse()));
+        } else {
+            System.out.println("Série não foi encontrada");
+        }
+    }
+
+    private void buscarSeriePorAtor() {
+
+        System.out.println("Digite o nome do ator:");
+        var nomeAtor = scanner.nextLine();
+
+        var seriesEncontradas = serieRepository.findByAtoresNomeContainingIgnoreCase(nomeAtor);
+
+        if (seriesEncontradas.size() > 0) {
+            System.out.println("Dados da(s) série(s): " + System.lineSeparator());
+            seriesEncontradas.forEach(s -> System.out
+                    .println(s.getTitulo() + ", atores=" + s.getAtores() + ", sinopse=" + s.getSinopse()));
+        } else {
+            System.out.println("Nenhuma série foi encontrada com esse ator");
+        }
+    };
+
+    private void buscarSeriePorAtorEAvaliacao() {
+
+        System.out.println("Digite o nome do ator:");
+        var nomeAtor = scanner.nextLine();
+        System.out.println("Qual a nota mínima da série?");
+        double avaliacao;
+        try {
+            avaliacao = scanner.nextDouble();
+        } catch (InputMismatchException e) {
+            System.out.println("Digite um número válido, com vírgula como separador decimal.");
+            scanner.nextLine();
+            return;
+        }
+        scanner.nextLine();
+
+        var seriesEncontradas = serieRepository
+                .findByAtoresNomeContainingIgnoreCaseAndAvaliacaoGreaterThan(nomeAtor, avaliacao);
+
+        if (seriesEncontradas.size() > 0) {
+            System.out.println("Dados da(s) série(s): " + System.lineSeparator());
+            seriesEncontradas.forEach(s -> System.out
+                    .println(s.getTitulo() + ", avaliacao=" + s.getAvaliacao()
+                            + ", atores=" + s.getAtores() + ", sinopse=" + s.getSinopse()));
+        } else {
+            System.out.println("Nenhuma série foi encontrada com esse ator");
+        }
+    }
+
+    private void buscarTop5Series() {
+        var seriesEncontradas = serieRepository.findFirst5ByOrderByAvaliacaoDesc();
+
+        if (seriesEncontradas.size() > 0) {
+            System.out.println("Dados das séries: " + System.lineSeparator());
+            seriesEncontradas.forEach(s -> System.out
+                    .println(s.getTitulo() + ", avaliacao=" + s.getAvaliacao()
+                            + ", atores=" + s.getAtores() + ", sinopse=" + s.getSinopse()));
+        } else {
+            System.out.println("Nenhuma série foi encontrada");
+        }
+    }
+
+    // private void listarSeriesPorNota() {
+    // var seriesEncontradas = serieRepository.findAllByOrderByAvaliacaoDesc();
+
+    // if (seriesEncontradas.size() > 0) {
+    // System.out.println("Dados das séries: " + System.lineSeparator());
+    // seriesEncontradas.forEach(s -> System.out
+    // .println(s.getTitulo() + ", avaliacao=" + s.getAvaliacao()));
+    // } else {
+    // System.out.println("Nenhuma série foi encontrada");
+    // }
+    // }
+
+    private void buscarSeriePorGenero() {
+        Categoria.exibirCategoriasEmPortugues();
+
+        System.out.println("Digite um dos gêneros acima:");
+        var nomeGenero = scanner.nextLine();
+
+        try {
+            var categoriaBuscada = Categoria.fromPortugues(nomeGenero);
+
+            var seriesEncontradas = serieRepository.findByGeneros(categoriaBuscada);
+
+            if (seriesEncontradas.size() > 0) {
+                System.out.println("Dados da(s) série(s): " + System.lineSeparator());
+                seriesEncontradas.forEach(s -> System.out.println(s.getTitulo() + ", gêneros="
+                        + s.getGeneros().stream().map(categoria -> categoria.getCategoriaEmPortugues()).toList()
+                        + ", sinopse=" + s.getSinopse()));
+            } else {
+                System.out.println("Nenhuma série desse gênero foi encontrada");
+            }
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            System.out.println("Gênero inválido!");
+        } catch (Exception e) {
+            System.out.println("Erro inesperado: " + e);
+        }
+    };
+
+    private void buscarSeriesCurtasEBoas() {
+        System.out.println("Você quer ver séries boas com até quantas temporadas?");
+        int numeroTemporadas;
+        try {
+            numeroTemporadas = scanner.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Digite um número inteiro válido.");
+            scanner.nextLine();
+            return;
+        }
+        scanner.nextLine();
+
+        var seriesEncontradas = serieRepository.filtrarSeriesPorTemporadaEAvaliacao(numeroTemporadas, 7.0);
+
+        if (seriesEncontradas.size() > 0) {
+            System.out.println("Dados da(s) série(s): " + System.lineSeparator());
+            seriesEncontradas.forEach(s -> System.out
+                    .println(s.getTitulo() + ", avaliacao=" + s.getAvaliacao()
+                            + ", temporadas=" + s.getTotalTemporadas() + ", sinopse=" + s.getSinopse()));
+        } else {
+            System.out.println("Nenhuma série foi encontrada com esses critérios");
+        }
+    }
+
+    private void buscarEpisodiosPorTrechoTitulo() {
+        System.out.println("Digite parte do título do episódio que você está procurando:");
+        var trechoTitulo = scanner.nextLine();
+
+        var episodiosEncontrados = serieRepository.listarEpisodiosPorTrechoTitulo(trechoTitulo);
+
+        if (episodiosEncontrados.size() > 0) {
+            System.out.println(System.lineSeparator() + "Episódio(s) encontrado(s):");
+            episodiosEncontrados.forEach(e -> System.out
+                    .printf("Título: %s - Série: %s - S%sE%s\n",
+                            e.getTitulo(), e.getSerie().getTitulo(),
+                            e.getTemporada(), e.getNumeroEpisodio()));
+        } else {
+            System.out.println("Nenhum episódio foi encontrado.");
+        }
+    }
+
+    private void buscarTop5EpisodiosSerie() {
+        listarSeriesBuscadas();
+
+        System.out.println("Digite o nome da série desejada:");
+        var nomeSerie = scanner.nextLine();
+
+        var episodiosEncontrados = serieRepository.listarTop5EpisodiosPorSerie(nomeSerie);
+
+        if (episodiosEncontrados.size() > 0) {
+            episodiosEncontrados.forEach(e -> System.out
+                    .printf("Título: %s - Nota %s - Série: %s - S%sE%s\n",
+                            e.getTitulo(), e.getAvaliacao(), e.getSerie().getTitulo(),
+                            e.getTemporada(), e.getNumeroEpisodio()));
+        } else {
+            System.out.println("Nenhum episódio foi encontrado.");
+        }
+    }
+
+    private void buscarEpisodiosAPartirDeData() {
+        listarSeriesBuscadas();
+
+        System.out.println("Digite o nome da série desejada:");
+        var nomeSerie = scanner.nextLine();
+
+        System.out.println("Qual é o ano máximo de lançamento?");
+        int anoLancamento;
+        try {
+            anoLancamento = scanner.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Digite um número inteiro válido.");
+            scanner.nextLine();
+            return;
+        }
+        scanner.nextLine();
+
+        var episodiosEncontrados = serieRepository.listarEpisodiosAPartirDeData(nomeSerie, anoLancamento);
+
+        if (episodiosEncontrados.size() > 0) {
+            episodiosEncontrados.forEach(e -> System.out
+                    .printf("Título: %s - Série: %s - S%sE%s - Lançado em %s\n",
+                            e.getTitulo(), e.getSerie().getTitulo(),
+                            e.getTemporada(), e.getNumeroEpisodio(), e.getDataLancamento()));
+        } else {
+            System.out.println("Nenhum episódio foi encontrado.");
+        }
+    }
+}
