@@ -18,6 +18,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "series")
@@ -31,8 +33,10 @@ public class Serie {
     private Double avaliacao;
     @ElementCollection(targetClass = Categoria.class, fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Categoria> generos;
     @ManyToMany(fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Ator> atores;
     private String poster;
     private String sinopse;

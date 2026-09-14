@@ -12,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "episodios")
@@ -26,6 +28,7 @@ public class Episodio {
     private Double avaliacao;
     private LocalDate dataLancamento;
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Serie serie;
 
