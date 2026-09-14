@@ -65,13 +65,13 @@ public class Principal {
 
             switch (opcao) {
                 case 1:
-                    buscarSerieWeb();
+                    baixarDadosSerieOmdb();
                     break;
                 case 2:
-                    buscarEpisodioPorSerie();
+                    baixarEpisodiosOmdb();
                     break;
                 case 3:
-                    listarSeriesBuscadas();
+                    listarSeriesSalvas();
                     break;
                 case 4:
                     buscarSeriePorTitulo();
@@ -109,19 +109,13 @@ public class Principal {
         }
     }
 
-    private void listarSeriesBuscadas() {
-
-        // List<Serie> series = new ArrayList<>();
-        // series = dadosSeries.stream().map(d -> new
-        // Serie(d)).collect(Collectors.toList());
-
-        series = serieRepository.findAll();
-
-        series.forEach(s -> System.out.println(s.getTitulo()));
-    }
-
-    private void buscarSerieWeb() {
+    private void baixarDadosSerieOmdb() {
         DadosSerie dadosSerie = getDadosSerie();
+
+        if (dadosSerie.totalTemporadas() == null) {
+            System.out.println("Isto não é uma série.");
+            return;
+        }
 
         List<Ator> atores = List.of(dadosSerie.atores().split(", "))
                 .stream()
@@ -150,8 +144,8 @@ public class Principal {
         return dados;
     }
 
-    private void buscarEpisodioPorSerie() {
-        listarSeriesBuscadas();
+    private void baixarEpisodiosOmdb() {
+        listarSeriesSalvas();
 
         System.out.println("Escolha a série pelo nome:");
         var nomeSerie = scanner.nextLine();
@@ -188,7 +182,16 @@ public class Principal {
                 System.out.println("Já existe um episódio com esse título.");
             }
         }
+    }
 
+    private void listarSeriesSalvas() {
+        // List<Serie> series = new ArrayList<>();
+        // series = dadosSeries.stream().map(d -> new
+        // Serie(d)).collect(Collectors.toList());
+
+        series = serieRepository.findAll();
+
+        series.forEach(s -> System.out.println(s.getTitulo()));
     }
 
     private void buscarSeriePorTitulo() {
@@ -344,7 +347,7 @@ public class Principal {
     }
 
     private void buscarTop5EpisodiosSerie() {
-        listarSeriesBuscadas();
+        listarSeriesSalvas();
 
         System.out.println("Digite o nome da série desejada:");
         var nomeSerie = scanner.nextLine();
@@ -362,7 +365,7 @@ public class Principal {
     }
 
     private void buscarEpisodiosAPartirDeData() {
-        listarSeriesBuscadas();
+        listarSeriesSalvas();
 
         System.out.println("Digite o nome da série desejada:");
         var nomeSerie = scanner.nextLine();

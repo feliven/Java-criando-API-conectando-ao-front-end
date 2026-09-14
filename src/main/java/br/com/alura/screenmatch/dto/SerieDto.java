@@ -14,5 +14,4 @@ public record SerieDto(
         List<Ator> atores,
         String poster,
         String sinopse) {
-
 }
