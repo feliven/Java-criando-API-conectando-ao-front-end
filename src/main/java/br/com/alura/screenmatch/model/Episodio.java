@@ -3,8 +3,6 @@ package br.com.alura.screenmatch.model;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +27,6 @@ public class Episodio {
     private LocalDate dataLancamento;
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnore
     private Serie serie;
 
     public Episodio() {
