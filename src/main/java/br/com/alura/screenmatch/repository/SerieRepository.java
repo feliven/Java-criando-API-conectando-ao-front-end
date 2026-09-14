@@ -1,5 +1,6 @@
 package br.com.alura.screenmatch.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,8 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     List<Serie> findFirst5ByOrderByAvaliacaoDesc();
 
     List<Serie> findAllByOrderByAvaliacaoDesc();
+
+    List<Serie> findByDataLancamentoAfter(LocalDate data);
 
     List<Serie> findByGeneros(Categoria categoria);
 
