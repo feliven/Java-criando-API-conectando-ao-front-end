@@ -45,10 +45,25 @@ public class SerieService {
         return converteParaListaSerieDto(serieRepository.filtrarSeriesPorEpisodiosRecentes());
     }
 
+    public SerieDto obterSeriePorId(Long id) {
+        var serie = serieRepository.findById(id);
+
+        if (serie.isPresent()) {
+            return converteParaSerieDto(serie.get());
+        }
+
+        return null;
+    }
+
+    private SerieDto converteParaSerieDto(Serie serie) {
+        return new SerieDto(serie.getId(), serie.getTitulo(), serie.getTotalTemporadas(), serie.getAvaliacao(),
+                serie.getDataLancamento(), serie.getGeneros(), serie.getAtores(), serie.getPoster(),
+                serie.getSinopse());
+    }
+
     private List<SerieDto> converteParaListaSerieDto(List<Serie> listaSeries) {
         return listaSeries.stream()
-                .map(s -> new SerieDto(s.getId(), s.getTitulo(), s.getTotalTemporadas(), s.getAvaliacao(),
-                        s.getDataLancamento(), s.getGeneros(), s.getAtores(), s.getPoster(), s.getSinopse()))
+                .map(s -> converteParaSerieDto(s))
                 .toList();
     }
 

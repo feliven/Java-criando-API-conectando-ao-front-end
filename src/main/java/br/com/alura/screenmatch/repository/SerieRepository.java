@@ -2,6 +2,7 @@ package br.com.alura.screenmatch.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,11 +29,15 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     List<Serie> findByTotalTemporadasLessThanEqualAndAvaliacaoGreaterThanOrderByAvaliacaoDesc(
             int totalTemporadas, double avaliacao);
 
+    Optional<Serie> findById(Long id);
+
     List<Serie> findFirst5ByOrderByEpisodiosDataLancamentoDesc();
 
     @Query("""
-            SELECT s FROM Serie s JOIN s.episodios e WHERE YEAR(e.dataLancamento) >= 2015
-            ORDER BY e.dataLancamento DESC
+            SELECT s FROM Serie s JOIN s.episodios e
+            GROUP BY s
+            ORDER BY MAX(e.dataLancamento) DESC
+            LIMIT 5
             """)
     List<Serie> filtrarSeriesPorEpisodiosRecentes();
 
