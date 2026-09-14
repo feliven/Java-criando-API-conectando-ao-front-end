@@ -4,29 +4,32 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.alura.screenmatch.dto.SerieDto;
 import br.com.alura.screenmatch.service.SerieService;
 
 @RestController
+@RequestMapping("/series")
 public class SerieController {
 
     @Autowired
     SerieService serieService;
 
-    @GetMapping("/series")
+    @GetMapping
     public List<SerieDto> obterSeries() {
         return serieService.obterTodasAsSeries();
     }
 
-    @GetMapping("/series/top5")
+    @GetMapping("/top5")
     public List<SerieDto> obterTop5Series() {
         return serieService.obterTop5Series();
     }
 
-    @GetMapping("/series/lancamentos")
+    @GetMapping("/lancamentos")
     public List<SerieDto> obterLancamentos() {
-        return serieService.obterSeriesRecentes();
+        // return serieService.obterSeriesRecentes();
+        return serieService.obterSeriesComEpisodiosRecentes();
     }
 }

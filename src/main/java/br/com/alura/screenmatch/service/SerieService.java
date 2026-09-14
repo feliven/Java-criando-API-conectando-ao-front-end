@@ -41,6 +41,10 @@ public class SerieService {
         return converteParaListaSerieDto(serieRepository.findByDataLancamentoAfter(data));
     }
 
+    public List<SerieDto> obterSeriesComEpisodiosRecentes() {
+        return converteParaListaSerieDto(serieRepository.filtrarSeriesPorEpisodiosRecentes());
+    }
+
     private List<SerieDto> converteParaListaSerieDto(List<Serie> listaSeries) {
         return listaSeries.stream()
                 .map(s -> new SerieDto(s.getId(), s.getTitulo(), s.getTotalTemporadas(), s.getAvaliacao(),

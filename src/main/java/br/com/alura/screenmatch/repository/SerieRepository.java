@@ -28,6 +28,14 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     List<Serie> findByTotalTemporadasLessThanEqualAndAvaliacaoGreaterThanOrderByAvaliacaoDesc(
             int totalTemporadas, double avaliacao);
 
+    List<Serie> findFirst5ByOrderByEpisodiosDataLancamentoDesc();
+
+    @Query("""
+            SELECT s FROM Serie s JOIN s.episodios e WHERE YEAR(e.dataLancamento) >= 2015
+            ORDER BY e.dataLancamento DESC
+            """)
+    List<Serie> filtrarSeriesPorEpisodiosRecentes();
+
     @Query("SELECT s FROM Serie s WHERE s.totalTemporadas <= 5 AND s.avaliacao >= 7.5")
     List<Serie> listarSeriesPorTemporadaEAvaliacao();
 
