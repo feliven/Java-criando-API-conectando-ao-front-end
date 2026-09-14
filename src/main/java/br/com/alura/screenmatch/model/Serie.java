@@ -1,7 +1,10 @@
 package br.com.alura.screenmatch.model;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.OptionalDouble;
 
 import br.com.alura.screenmatch.service.LangChain4jRequesty;
@@ -31,6 +34,7 @@ public class Serie {
     private String titulo;
     private Integer totalTemporadas;
     private Double avaliacao;
+    private LocalDate dataLancamento;
     @ElementCollection(targetClass = Categoria.class, fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -49,6 +53,10 @@ public class Serie {
     public Serie(DadosSerie dadosSerie, List<Ator> atores) {
         this.titulo = dadosSerie.titulo();
         this.totalTemporadas = dadosSerie.totalTemporadas();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.of("pt", "BR"));
+        this.dataLancamento = LocalDate.parse(dadosSerie.dataLancamento(), formatter);
+
         this.avaliacao = OptionalDouble
                 .of(
                         Double.valueOf(dadosSerie.avaliacao()))
@@ -70,6 +78,10 @@ public class Serie {
 
     public Integer getTotalTemporadas() {
         return totalTemporadas;
+    }
+
+    public LocalDate getDataLancamento() {
+        return dataLancamento;
     }
 
     public Double getAvaliacao() {
