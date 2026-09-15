@@ -93,6 +93,21 @@ public class SerieService {
         return null;
     }
 
+    public List<EpisodioDto> obterTop5EpisodiosSerie(Long id) {
+        var listaEpisodios = serieRepository.listarTop5EpisodiosPorIdSerie(id);
+
+        if (listaEpisodios.size() > 0) {
+            return listaEpisodios.stream()
+                    .map(
+                            e -> new EpisodioDto(
+                                    e.getId(), e.getTemporada(), e.getTitulo(), e.getNumeroEpisodio(),
+                                    e.getAvaliacao(), e.getDataLancamento()))
+                    .toList();
+        }
+
+        return null;
+    }
+
     private SerieDto converteParaSerieDto(Serie serie) {
         return new SerieDto(serie.getId(), serie.getTitulo(), serie.getTotalTemporadas(), serie.getAvaliacao(),
                 serie.getDataLancamento(), serie.getGeneros(), serie.getAtores(), serie.getPoster(),
