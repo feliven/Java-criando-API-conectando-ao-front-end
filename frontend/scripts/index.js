@@ -25,7 +25,7 @@ function criarListaFilmes(elemento, dados) {
     .map(
       (filme) => `
         <li>
-            <a href="/detalhes.html?id=${filme.id}">
+            <a href="/frontend/detalhes.html?id=${filme.id}">
                 <img src="${filme.poster}" alt="${filme.titulo}">
             </a>
         </li>

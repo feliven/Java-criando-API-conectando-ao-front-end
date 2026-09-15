@@ -75,14 +75,21 @@ function carregarEpisodios() {
 function carregarInfoSerie() {
   getDados(`/series/${serieId}`)
     .then((data) => {
+      let listaAtores = `${data.atores[0].nome}`;
+
+      for (let i = 1; i <= data.atores.length - 1; i++) {
+        listaAtores = listaAtores + `, ${data.atores[i].nome}`;
+        console.log("listaAtores:", listaAtores);
+      }
+
       fichaDescricao.innerHTML = `
                 <img src="${data.poster}" alt="${data.titulo}" />
                 <div>
                     <h2>${data.titulo}</h2>
                     <div class="descricao-texto">
-                        <p><b>Média de avaliações:</b> ${data.avaliacao}</p>
+                        <p><strong>Média de avaliações:</strong> ${data.avaliacao}</p>
                         <p>${data.sinopse}</p>
-                        <p><b>Estrelando:</b> ${data.atores}</p>
+                        <p><strong>Estrelando:</strong> ${listaAtores}</p>
                     </div>
                 </div>
             `;
