@@ -61,9 +61,11 @@ function carregarEpisodios() {
         const paragrafo = document.createElement("p");
         const linha = document.createElement("br");
         paragrafo.textContent = `Temporada ${temporada}`;
-        fichaSerie.appendChild(paragrafo);
         fichaSerie.appendChild(linha);
+        fichaSerie.appendChild(paragrafo);
+        fichaSerie.appendChild(linha.cloneNode(true));
         fichaSerie.appendChild(ul);
+        fichaSerie.appendChild(linha.cloneNode(true));
       });
     })
     .catch((error) => {

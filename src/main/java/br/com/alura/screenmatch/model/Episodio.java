@@ -18,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Episodio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     private Integer temporada;
     @Column(unique = true)
     private String titulo;
