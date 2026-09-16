@@ -20,8 +20,8 @@ function carregarTemporadas() {
 
       temporadasUnicas.forEach((temporada) => {
         const option = document.createElement("option");
-        option.value = temporada;
-        option.textContent = temporada;
+        option.value = String(temporada);
+        option.textContent = String(temporada);
         listaTemporadas.appendChild(option);
       });
 
@@ -109,6 +109,19 @@ function carregarTopEpisodios() {
     });
 }
 
+function carregarEpisodiosSelecionados() {
+  if (listaTemporadas.value === "top") {
+    carregarTopEpisodios();
+    return;
+  }
+
+  if (listaTemporadas.value) {
+    carregarEpisodios();
+  } else {
+    fichaSerie.innerHTML = "";
+  }
+}
+
 // Função para carregar informações da série
 function carregarInfoSerie() {
   getDados(`/series/${serieId}`)
@@ -138,8 +151,7 @@ function carregarInfoSerie() {
 }
 
 // Adiciona ouvinte de evento para o elemento select
-listaTemporadas.addEventListener("change", carregarEpisodios);
-listaTemporadas.addEventListener("change", carregarTopEpisodios);
+listaTemporadas.addEventListener("change", carregarEpisodiosSelecionados);
 
 // Carrega as informações da série e as temporadas quando a página carrega
 carregarInfoSerie();

@@ -10,7 +10,7 @@ body {
 }
 
 .dropdown-select {
-  width: 30%;
+  width: max(30%, 250px);
   margin: 0;
   padding: 6px 8px 6px 10px;
   height: 40px;

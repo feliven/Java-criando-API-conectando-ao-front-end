@@ -30,18 +30,34 @@ h2 {
 }
 
 main {
-  padding: 0 3em;
+  padding: 0 clamp(1em, 5vw, 3em);
 }
 
 .cabecalho {
   display: flex;
   justify-content: space-between;
   padding: 1em 3em;
+
+  @media screen and (max-width: 600px) {
+    flex-direction: column;
+    padding: 1em;
+  }
 }
 
 .cabecalho__logo {
   display: flex;
   gap: 1em;
+
+  @media screen and (max-width: 600px) {
+    margin: auto;
+  }
+}
+
+.cabecalho__opcoes {
+  @media screen and (max-width: 600px) {
+    display: flex;
+    margin-left: auto;
+  }
 }
 
 .cabecalho__logo img {

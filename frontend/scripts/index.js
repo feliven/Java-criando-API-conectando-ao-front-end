@@ -7,10 +7,8 @@ const elementos = {
   series: document.querySelector('[data-name="series"]'),
 };
 
-// Função para criar a lista de filmes
-
-// Função para criar a lista de filmes
-function criarListaFilmes(elemento, dados) {
+// Função para criar a lista de séries
+function criarListaSeries(elemento, dados) {
   // Verifique se há um elemento <ul> dentro da seção
   const ulExistente = elemento.querySelector("ul");
 
@@ -23,10 +21,10 @@ function criarListaFilmes(elemento, dados) {
   ul.className = "lista";
   const listaHTML = dados
     .map(
-      (filme) => `
+      (serie) => `
         <li>
-            <a href="detalhes.html?id=${filme.id}">
-                <img src="${filme.poster}" alt="${filme.titulo}">
+            <a href="detalhes.html?id=${serie.id}">
+                <img src="${serie.poster}" alt="${serie.titulo}">
             </a>
         </li>
     `,
@@ -35,11 +33,6 @@ function criarListaFilmes(elemento, dados) {
 
   ul.innerHTML = listaHTML;
   elemento.appendChild(ul);
-}
-
-// Função genérica para tratamento de erros
-function lidarComErro(mensagemErro) {
-  console.error(mensagemErro);
 }
 
 const categoriaSelect = document.querySelector("[data-categorias]");
@@ -63,10 +56,10 @@ categoriaSelect.addEventListener("change", function () {
     // Faça uma solicitação para o endpoint com a categoria selecionada
     getDados(`/series/categoria/${categoriaSelecionada}`)
       .then((data) => {
-        criarListaFilmes(categoria, data);
+        criarListaSeries(categoria, data);
       })
       .catch((error) => {
-        lidarComErro("Ocorreu um erro ao carregar os dados da categoria.");
+        console.error("Ocorreu um erro ao carregar os dados da categoria.");
       });
   }
 });
@@ -79,11 +72,11 @@ function geraSeries() {
   // Faz todas as solicitações em paralelo
   Promise.all(urls.map((url) => getDados(url)))
     .then((data) => {
-      criarListaFilmes(elementos.top5, data[0]);
-      criarListaFilmes(elementos.lancamentos, data[1]);
-      criarListaFilmes(elementos.series, data[2].slice(0, 5));
+      criarListaSeries(elementos.top5, data[0]);
+      criarListaSeries(elementos.lancamentos, data[1]);
+      criarListaSeries(elementos.series, data[2].slice(0, 5));
     })
     .catch((error) => {
-      lidarComErro("Ocorreu um erro ao carregar os dados.");
+      console.error("Ocorreu um erro ao carregar os dados.");
     });
 }
